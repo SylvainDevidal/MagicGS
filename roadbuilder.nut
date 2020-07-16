@@ -60,6 +60,7 @@ function ConnectTowns(sources, destinations, mode)
     local max_distance;
     local max_destinations;
     local reuse_existing_road;
+    local destinations_original = null;
 
     switch (mode)
     {
@@ -74,12 +75,16 @@ function ConnectTowns(sources, destinations, mode)
             max_distance = GSMap.GetMapSizeX() + GSMap.GetMapSizeY();
             reuse_existing_road = true;
             max_destinations = 1;
+            destinations_original = GSList();
+            destinations_original.AddList(destinations);
             break;
         case MODE_TOWNS_TO_NEIGHBOR:
             GSLog.Info("Connecting towns to neighbor");
             max_distance = max_distance_between_towns;
             reuse_existing_road = true;
             max_destinations = max_connected_towns;
+            destinations_original = GSList();
+            destinations_original.AddList(destinations);
             break;
         default:
             GSLog.Error("Invalid mode: " + mode);
@@ -90,23 +95,28 @@ function ConnectTowns(sources, destinations, mode)
     {
         GSLog.Info(GSTown.GetName(source));
         
+        if (destinations_original != null)
+        {
+            // We need the complete list of destinations
+            destinations = GSList();
+            destinations.AddList(destinations_original);
+        }
+
         // Remove the source town from destinations
-        local dests = GSList();
-        dests.AddList(destinations);
-        dests.RemoveItem(source);
+        destinations.RemoveItem(source);
 
         // Choose which destinations to keep
-        dests.Valuate(function(me, other) { return GSMap.DistanceManhattan(GSTown.GetLocation(me), other); }, GSTown.GetLocation(source));
+        destinations.Valuate(function(me, other) { return GSMap.DistanceManhattan(GSTown.GetLocation(me), other); }, GSTown.GetLocation(source));
 
         // Keep only towns that are close enougth
-        dests.KeepBelowValue(max_distance);
-        dests.Sort(GSList.SORT_BY_VALUE, GSList.SORT_ASCENDING);
+        destinations.KeepBelowValue(max_distance);
+        destinations.Sort(GSList.SORT_BY_VALUE, GSList.SORT_ASCENDING);
         local remain_destination = max_destinations;
 
-        foreach (destination,val in dests)
+        foreach (destination,val in destinations)
         {
             GSLog.Info("  -> " + GSTown.GetName(destination));
-            if (this.BuildRoad(source, destination, dests.GetValue(destination), reuse_existing_road))
+            if (this.BuildRoad(source, destination, destinations.GetValue(destination), reuse_existing_road))
             {
                 remain_destination--;
             }
