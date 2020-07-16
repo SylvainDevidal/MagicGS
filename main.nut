@@ -21,7 +21,7 @@
 require("version.nut");			// get SELF_VERSION
 require("roadbuilder.nut");		// Creates a RoadBuilder instance
 
-class MainClass extends GSController 
+class MainClass extends GSController
 {
 	_loaded_data = null;
 	_loaded_from_version = null;
@@ -58,15 +58,14 @@ function MainClass::Start()
 function MainClass::Init()
 {
 	if (this._loaded_data != null) {
-		// Copy loaded data from this._loaded_data to this.*
-		// or do whatever you like with the loaded data
-	} else {
-		RoadBuilder.BuildRoads();	
+		if ("connected_towns" in this._loaded_data) RoadBuilder.connected_towns = this._loaded_data.connected_towns;
 	}
 
 	// Indicate that all data structures has been initialized/restored.
 	this._init_done = true;
-	this._loaded_data = null; // the loaded data has no more use now after that _init_done is true.
+	this._loaded_data = null;
+
+	RoadBuilder.BuildRoads();
 }
 
 /*
@@ -79,15 +78,12 @@ function MainClass::Save()
 {
 	GSLog.Info("Saving data to savegame");
 
-	// In case (auto-)save happens before we have initialized all data,
-	// save the raw _loaded_data if available or an empty table.
 	if (!this._init_done) {
 		return this._loaded_data != null ? this._loaded_data : {};
 	}
 
 	return { 
-		some_data = null,
-		//some_other_data = this._some_variable,
+		connected_towns = RoadBuilder.connected_towns
 	};
 }
 

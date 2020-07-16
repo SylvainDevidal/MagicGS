@@ -9,16 +9,48 @@ class RoadBuilder
     MODE_CITIES_TO_CITIES = 0;
     MODE_TOWNS_TO_CITIES = 1;
     MODE_TOWNS_TO_NEIGHBOR = 2;
+
+    connected_towns = null;
+
+    constructor()
+    {
+        this.max_distance_between_towns = GSController.GetSetting("max_distance_between_towns");
+        this.max_connected_towns = GSController.GetSetting("max_connected_towns");
+        this.connected_towns = array(0);
+    }
 }
 
-function RoadBuilder::constructor()
+function RoadBuilder::StoreConnection(source, destination)
 {
-	this.max_distance_between_towns = GSController.GetSetting("max_distance_between_towns");
-	this.max_connected_towns = GSController.GetSetting("max_connected_towns");
+    this.connected_towns.push({source = source, destination = destination});
+}
+
+function RoadBuilder::TownsAlreadyConnected(source, destination)
+{
+    if (this.connected_towns.len() > 0)
+    {
+        foreach(idx,val in this.connected_towns)
+        {
+            if (val.source == source && val.destination == destination || val.source == destination && val.destination == source)
+            {
+               return true;
+            }
+        }
+    }
+    return false;
 }
 
 function RoadBuilder::BuildRoads()
 {
+    if (this.connected_towns != null && this.connected_towns.len() > 0)
+    {
+        GSLog.Info("Already connected towns:");
+        foreach(idx,val in this.connected_towns)
+        {
+            GSLog.Info(GSTown.GetName(val.source) + " <-> " + GSTown.GetName(val.destination));
+        }
+    }
+
     /// Find cities
     local cities = GSTownList();
     cities.Valuate(function(id) { if (GSTown.IsCity(id)) return 1; return 0; } );
@@ -116,10 +148,16 @@ function ConnectTowns(sources, destinations, mode)
         foreach (destination,val in destinations)
         {
             GSLog.Info("  -> " + GSTown.GetName(destination));
-            if (this.BuildRoad(source, destination, destinations.GetValue(destination), reuse_existing_road))
+            if (TownsAlreadyConnected(source, destination))
             {
                 remain_destination--;
             }
+            else if (this.BuildRoad(source, destination, destinations.GetValue(destination), reuse_existing_road))
+            {
+                this.StoreConnection(source, destination);
+                remain_destination--;
+            }
+
             if (remain_destination <= 0)
             {
                 break;
