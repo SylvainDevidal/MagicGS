@@ -101,18 +101,27 @@ function ConnectTowns(sources, destinations, mode)
         // Keep only towns that are close enougth
         dests.KeepBelowValue(max_distance);
         dests.Sort(GSList.SORT_BY_VALUE, GSList.SORT_ASCENDING);
-        dests.KeepTop(max_destinations);
+        local remain_destination = max_destinations;
 
         foreach (destination,val in dests)
         {
             GSLog.Info("  -> " + GSTown.GetName(destination));
-            this.BuildRoad(source, destination, dests.GetValue(destination), reuse_existing_road);
+            if (this.BuildRoad(source, destination, dests.GetValue(destination), reuse_existing_road))
+            {
+                remain_destination--;
+            }
+            if (remain_destination <= 0)
+            {
+                break;
+            }
         }
     }
 }
 
 function RoadBuilder::BuildRoad(source, destination, distance, repair_existing)
 {
+    local res = true;
+
 	GSRoad.SetCurrentRoadType(GSRoad.ROADTYPE_ROAD);
 
     local PathFinder = RoadPathFinder(false);
@@ -124,20 +133,20 @@ function RoadBuilder::BuildRoad(source, destination, distance, repair_existing)
 		GSController.Sleep(1);
 	}
 	if (path == null) {
-		GSLog.Error("pathfinder.FindPath return NULL");
+        res = false;
         switch (PathFinder.GetFindPathError())
         {
             case PathFinder.PATH_FIND_NO_ERROR:
-                GSLog.Error("no error... wtf!?");
+                GSLog.Error("No path and... no error. WTF!?");
                 break;
             case PathFinder.PATH_FIND_FAILED_NO_PATH:
-                GSLog.Error("There is definitely no path");
+                GSLog.Warning("There is definitely no path.");
                 break;
             case PathFinder.PATH_FIND_FAILED_TIME_OUT:
                 GSLog.Error("why the hell did it timed out?");
                 break;
             default:
-                GSLog.Error("unknow error value: " + PathFinder.GetFindPathError());
+                GSLog.Error("Unknown error value: " + PathFinder.GetFindPathError());
                 break;
         }
 	}
@@ -173,6 +182,7 @@ function RoadBuilder::BuildRoad(source, destination, distance, repair_existing)
             path = par;
         }
     }
+    return res;
 }
 
 RoadBuilder <- RoadBuilder();
