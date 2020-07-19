@@ -175,11 +175,14 @@ function RoadBuilder::BuildRoad(source, destination, distance, repair_existing)
     local PathFinder = RoadPathFinder(false);
 	PathFinder.InitializePath([GSTown.GetLocation(source)], [GSTown.GetLocation(destination)], repair_existing);
 	
-	local path = false;
-	while (path == false) {
-		path = PathFinder.FindPath(10000000);
-		GSController.Sleep(1);
+	local path = null;
+	local pf_error = PathFinder.PATH_FIND_NO_ERROR;
+	PathFinder.SetMaxIterations(10000000);
+	while (path == null && pf_error == PathFinder.PATH_FIND_NO_ERROR) {
+		path = PathFinder.FindPath(100);
+		pf_error = PathFinder.GetFindPathError();
 	}
+
 	if (path == null) {
         res = false;
         switch (PathFinder.GetFindPathError())
