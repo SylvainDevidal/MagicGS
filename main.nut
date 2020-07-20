@@ -39,6 +39,9 @@ function MainClass::Start()
 {
 	this.Init();
 
+	// Wait for company 0 to exists
+	GSController.Sleep(1);
+
 	GSLog.Info("GS job finished. Good bye!");
 
 	while (true) {
@@ -70,8 +73,6 @@ function MainClass::Init()
 	// Indicate that all data structures has been initialized/restored.
 	this._init_done = true;
 	this._loaded_data = null;
-
-	RoadBuilder.BuildRoads();
 }
 
 /*

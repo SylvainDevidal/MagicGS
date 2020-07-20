@@ -42,7 +42,7 @@ class RoadBuilder {
     connected_towns = null;
 
     // Job finished
-    job_finished = false;
+    job_finished = null;
 
     constructor() {
         this.connect_cities_to_cities = GSController.GetSetting("connect_cities_to_cities");
@@ -59,6 +59,8 @@ class RoadBuilder {
         this.max_connected_towns = GSController.GetSetting("max_connected_towns");
 
         this.connected_towns = array(0);
+
+        this.job_finished = false;
     }
 }
 
