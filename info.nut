@@ -25,7 +25,7 @@ class FMainClass extends GSInfo {
 	function GetName()			{ return "MagicGS"; }
 	function GetDescription() 	{ return "MagicGS is a Game Script that connects towns at startup"; }
 	function GetVersion()		{ return SELF_VERSION; }
-	function GetDate()			{ return "2020-07-19"; }
+	function GetDate()			{ return "2020-07-20"; }
 	function CreateInstance()	{ return "MainClass"; }
 	function GetShortName()		{ return "MAGI"; } // Replace this with your own unique 4 letter string
 	function GetAPIVersion()	{ return "1.10"; }
