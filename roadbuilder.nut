@@ -41,6 +41,9 @@ class RoadBuilder {
     // Already connected towns
     connected_towns = null;
 
+    // Job finished
+    job_finished = false;
+
     constructor() {
         this.connect_cities_to_cities = GSController.GetSetting("connect_cities_to_cities");
         this.max_distance_between_cities = GSController.GetSetting("max_distance_between_cities");
@@ -101,45 +104,50 @@ function RoadBuilder::BuildRoads() {
         }
     }
 
-    /// Find cities
-    local cities = GSTownList();
-    cities.Valuate(function(id) { if (GSTown.IsCity(id)) return 1; return 0; } );
-	cities.KeepValue(1);
-    
-    /// Find towns
-    local towns = GSTownList();
-    towns.Valuate(function(id) { if (GSTown.IsCity(id)) return 1; return 0; } );
-	towns.KeepValue(0);
+    while (!job_finished) {
+        // After this loop iteration, we will be done, or a new town has be founded (actually, may not happend 
+        job_finished = true;
 
-    // Prepare working lists
-    local sources = GSList();
-    local destinations = GSList();
+        /// Find cities
+        local cities = GSTownList();
+        cities.Valuate(function(id) { if (GSTown.IsCity(id)) return 1; return 0; } );
+        cities.KeepValue(1);
+        
+        /// Find towns
+        local towns = GSTownList();
+        towns.Valuate(function(id) { if (GSTown.IsCity(id)) return 1; return 0; } );
+        towns.KeepValue(0);
 
-    // Connect cities together whatever the distance they are
-    if (connect_cities_to_cities) {
-        sources.Clear();
-        sources.AddList(cities);
-        destinations.Clear();
-        destinations.AddList(cities);
-        ConnectTowns(sources, destinations, ConnectionMode.MODE_CITIES_TO_CITIES);
-    }
+        // Prepare working lists
+        local sources = GSList();
+        local destinations = GSList();
 
-    // Connect towns to nearest city whatever the distance it is
-    if (connect_towns_to_cities) {
-        sources.Clear();
-        sources.AddList(towns);
-        destinations.Clear();
-        destinations.AddList(cities);
-        ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_CITIES);
-    }
+        // Connect cities together whatever the distance they are
+        if (connect_cities_to_cities) {
+            sources.Clear();
+            sources.AddList(cities);
+            destinations.Clear();
+            destinations.AddList(cities);
+            ConnectTowns(sources, destinations, ConnectionMode.MODE_CITIES_TO_CITIES);
+        }
 
-    // Connect towns to nearest towns
-    if (connect_towns_to_towns) {
-        sources.Clear();
-        sources.AddList(towns);
-        destinations.Clear();
-        destinations.AddList(towns);
-        ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_TOWNS);
+        // Connect towns to nearest city whatever the distance it is
+        if (connect_towns_to_cities) {
+            sources.Clear();
+            sources.AddList(towns);
+            destinations.Clear();
+            destinations.AddList(cities);
+            ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_CITIES);
+        }
+
+        // Connect towns to nearest towns
+        if (connect_towns_to_towns) {
+            sources.Clear();
+            sources.AddList(towns);
+            destinations.Clear();
+            destinations.AddList(towns);
+            ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_TOWNS);
+        }
     }
 }
 
@@ -193,7 +201,7 @@ function ConnectTowns(sources, destinations, mode) {
         destinations.Valuate(function(me, other) { return GSMap.DistanceManhattan(GSTown.GetLocation(me), other); }, GSTown.GetLocation(source));
 
         // Keep only towns that are close enougth
-        destinations.KeepBelowValue(max_distance);
+        destinations.RemoveAboveValue(max_distance);
 
         if (destinations.Count() == 0) {
             GSLog.Info(" -> No destination to connect");
@@ -212,7 +220,7 @@ function ConnectTowns(sources, destinations, mode) {
                 remain_destination--;
             }
 
-            if (remain_destination <= 0) {
+            if (remain_destination == 0) {
                 break;
             }
         }

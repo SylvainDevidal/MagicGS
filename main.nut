@@ -42,6 +42,12 @@ function MainClass::Start()
 	GSLog.Info("GS job finished. Good bye!");
 
 	while (true) {
+		this.HandleEvents();
+
+		if (!RoadBuilder.job_finished) {
+			RoadBuilder.BuildRoads();
+		}
+
 		// GS must never stop, so we awake every 10 days
 		GSController.Sleep(10 * 74);
 	}
@@ -66,6 +72,27 @@ function MainClass::Init()
 	this._loaded_data = null;
 
 	RoadBuilder.BuildRoads();
+}
+
+/*
+ * This method handles incoming events from OpenTTD.
+ */
+function MainClass::HandleEvents()
+{
+	if (GSEventController.IsEventWaiting()) {
+		local ev = GSEventController.GetNextEvent();
+		if (ev == null) return;
+
+		local ev_type = ev.GetEventType();
+		switch (ev_type) {
+			case GSEvent.ET_TOWN_FOUNDED: {
+				// A new town was founded. We must connect it!
+				GSLog.Info("A new town was founded. We must connect it!");
+				RoadBuilder.job_finished = false;
+				break;
+			}
+		}
+	}
 }
 
 /*
