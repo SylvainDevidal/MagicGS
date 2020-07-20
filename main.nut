@@ -42,8 +42,6 @@ function MainClass::Start()
 	// Wait for company 0 to exists
 	GSController.Sleep(1);
 
-	GSLog.Info("GS job finished. Good bye!");
-
 	while (true) {
 		this.HandleEvents();
 

@@ -159,6 +159,9 @@ function ConnectTowns(sources, destinations, mode) {
     local reuse_existing_road;
     local destinations_original = null;
 
+    destinations_original = GSList();
+    destinations_original.AddList(destinations);
+
     GSRoad.SetCurrentRoadType(ChooseRoadType(mode));
     GSLog.Info("Connecting " + GetConnectionModeName(mode));
 
@@ -172,15 +175,11 @@ function ConnectTowns(sources, destinations, mode) {
             max_distance = max_distance_between_towns_and_cities;
             reuse_existing_road = true;
             max_destinations = 1;
-            destinations_original = GSList();
-            destinations_original.AddList(destinations);
             break;
         case ConnectionMode.MODE_TOWNS_TO_TOWNS:
             max_distance = max_distance_between_towns_and_towns;
             reuse_existing_road = true;
             max_destinations = max_connected_towns;
-            destinations_original = GSList();
-            destinations_original.AddList(destinations);
             break;
         default:
             GSLog.Error("Invalid mode: " + mode);
@@ -190,11 +189,9 @@ function ConnectTowns(sources, destinations, mode) {
     foreach (source,val in sources) {
         GSLog.Info(GSTown.GetName(source));
         
-        if (destinations_original != null) {
-            // We need the complete list of destinations
-            destinations = GSList();
-            destinations.AddList(destinations_original);
-        }
+        // We need the complete list of destinations (even for cities to cities as the a->b path finder may have failed)
+        destinations = GSList();
+        destinations.AddList(destinations_original);
 
         // Remove the source town from destinations
         destinations.RemoveItem(source);
