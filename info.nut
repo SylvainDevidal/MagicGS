@@ -23,11 +23,11 @@ require("version.nut");
 class FMainClass extends GSInfo {
 	function GetAuthor()		{ return "Sylvain Devidal"; }
 	function GetName()			{ return "MagicGS"; }
-	function GetDescription() 	{ return "MagicGS is a Game Script that connects towns at startup"; }
+	function GetDescription() 	{ return "MagicGS is a Game Script that connects towns"; }
 	function GetVersion()		{ return SELF_VERSION; }
-	function GetDate()			{ return "2020-07-20"; }
+	function GetDate()			{ return "2020-07-21"; }
 	function CreateInstance()	{ return "MainClass"; }
-	function GetShortName()		{ return "MAGI"; } // Replace this with your own unique 4 letter string
+	function GetShortName()		{ return "MAGI"; }
 	function GetAPIVersion()	{ return "1.10"; }
 	function GetURL()			{ return ""; }
 	function MinVersionToLoad() { return 1; }

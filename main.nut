@@ -18,8 +18,8 @@
  *
  */
 
-require("version.nut");			// get SELF_VERSION
-require("roadbuilder.nut");		// Creates a RoadBuilder instance
+require("version.nut");				// get SELF_VERSION
+require("magicroadbuilder.nut");	// Creates a MagicRoadBuilder instance
 
 class MainClass extends GSController
 {
@@ -45,8 +45,8 @@ function MainClass::Start()
 	while (true) {
 		this.HandleEvents();
 
-		if (!RoadBuilder.job_finished) {
-			RoadBuilder.BuildRoads();
+		if (!MagicRoadBuilder.job_finished) {
+			MagicRoadBuilder.BuildRoads();
 		}
 
 		// GS must never stop, so we awake every 10 days
@@ -65,7 +65,7 @@ function MainClass::Start()
 function MainClass::Init()
 {
 	if (this._loaded_data != null) {
-		if ("connected_towns" in this._loaded_data) RoadBuilder.connected_towns = this._loaded_data.connected_towns;
+		if ("connected_towns" in this._loaded_data) MagicRoadBuilder.connected_towns = this._loaded_data.connected_towns;
 	}
 
 	// Indicate that all data structures has been initialized/restored.
@@ -87,7 +87,7 @@ function MainClass::HandleEvents()
 			case GSEvent.ET_TOWN_FOUNDED: {
 				// A new town was founded. We must connect it!
 				GSLog.Info("A new town was founded. We must connect it!");
-				RoadBuilder.job_finished = false;
+				MagicRoadBuilder.job_finished = false;
 				break;
 			}
 		}
@@ -109,7 +109,7 @@ function MainClass::Save()
 	}
 
 	return { 
-		connected_towns = RoadBuilder.connected_towns
+		connected_towns = MagicRoadBuilder.connected_towns
 	};
 }
 

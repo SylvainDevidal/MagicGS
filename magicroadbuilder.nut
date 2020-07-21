@@ -19,9 +19,9 @@
  */
 
 import("util.superlib", "SuperLib", 40);
-RoadPathFinder <- SuperLib.RoadPathFinder;
+RoadBuilder <- SuperLib.RoadBuilder;
 
-class RoadBuilder {
+class MagicRoadBuilder {
     // Settings cities to cities
     connect_cities_to_cities = null;
     max_distance_between_cities = null;
@@ -70,7 +70,7 @@ enum ConnectionMode {
     MODE_TOWNS_TO_TOWNS,
 }
 
-function RoadBuilder::GetConnectionModeName(mode) {
+function MagicRoadBuilder::GetConnectionModeName(mode) {
     switch (mode)     {
         case ConnectionMode.MODE_CITIES_TO_CITIES:
             return "cities to cities";
@@ -83,11 +83,11 @@ function RoadBuilder::GetConnectionModeName(mode) {
     }
 }
 
-function RoadBuilder::StoreConnection(source, destination) {
+function MagicRoadBuilder::StoreConnection(source, destination) {
     this.connected_towns.push({source = source, destination = destination});
 }
 
-function RoadBuilder::TownsAlreadyConnected(source, destination) {
+function MagicRoadBuilder::TownsAlreadyConnected(source, destination) {
     if (this.connected_towns.len() > 0) {
         foreach(idx,val in this.connected_towns) {
             if (val.source == source && val.destination == destination || val.source == destination && val.destination == source) {
@@ -98,7 +98,7 @@ function RoadBuilder::TownsAlreadyConnected(source, destination) {
     return false;
 }
 
-function RoadBuilder::BuildRoads() {
+function MagicRoadBuilder::BuildRoads() {
     if (this.connected_towns != null && this.connected_towns.len() > 0) {
         GSLog.Info("Already connected towns:");
         foreach(idx,val in this.connected_towns) {
@@ -153,7 +153,7 @@ function RoadBuilder::BuildRoads() {
     }
 }
 
-function ConnectTowns(sources, destinations, mode) {
+function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
     local max_distance;
     local max_destinations;
     local reuse_existing_road;
@@ -226,72 +226,26 @@ function ConnectTowns(sources, destinations, mode) {
     }
 }
 
-// This function is shamelessly copied and adapted from CityConnector AI from Aun Johnsen
-function RoadBuilder::BuildRoad(source, destination, distance, repair_existing) {
-    local res = true;
+function MagicRoadBuilder::BuildRoad(source, destination, distance, repair_existing) {
+    local res = null;
 
-    local PathFinder = RoadPathFinder(false);
-	PathFinder.InitializePath([GSTown.GetLocation(destination)], [GSTown.GetLocation(source)], repair_existing);
-	
-	local path = null;
-	local pf_error = PathFinder.PATH_FIND_NO_ERROR;
-	PathFinder.SetMaxIterations(10000000);
-	while (path == null && pf_error == PathFinder.PATH_FIND_NO_ERROR) {
-		path = PathFinder.FindPath(100);
-		pf_error = PathFinder.GetFindPathError();
-	}
+    //local PathFinder = RoadPathFinder(false);
+    //PathFinder.InitializePath([GSTown.GetLocation(destination)], [GSTown.GetLocation(source)], repair_existing);
 
-	if (path == null) {
-        res = false;
-        switch (pf_error) {
-            case PathFinder.PATH_FIND_NO_ERROR:
-                GSLog.Error("No path and... no error. WTF!?");
-                break;
-            case PathFinder.PATH_FIND_FAILED_NO_PATH:
-                GSLog.Warning("There is definitely no path.");
-                break;
-            case PathFinder.PATH_FIND_FAILED_TIME_OUT:
-                GSLog.Error("why the hell did it timed out?");
-                break;
-            default:
-                GSLog.Error("Unknown error value: " + pf_error);
-                break;
-        }
+    local roadBuilder = RoadBuilder();
+    roadBuilder.Init(GSTown.GetLocation(destination), GSTown.GetLocation(source), repair_existing, 1000000);
+
+    res = roadBuilder.DoPathfinding();
+    if (res) {
+        roadBuilder.ConnectTiles();
     } else {
-        while (path != null) {
-            local par = path.GetParent();
-            if (par != null) {
-                local last_node = path.GetTile();
-                if (GSMap.DistanceManhattan(path.GetTile(), par.GetTile()) == 1) {
-                    if (!GSRoad.BuildRoad(path.GetTile(), par.GetTile())) {
-                        /* An error occured while building a piece of road. TODO: handle it.
-                        * Note that this can also be the case of the road was already build */
-                    }
-                } else {
-                    if (!GSBridge.IsBridgeTile(path.GetTile()) && !GSTunnel.IsTunnelTile(path.GetTile())) {
-                        if (GSRoad.IsRoadTile(path.GetTile())) GSTile.DemolishTile(path.GetTile());
-                        if (GSTunnel.GetOtherTunnelEnd(path.GetTile()) == par.GetTile()) {
-                            if (!GSTunnel.BuildTunnel(GSVehicle.VT_ROAD, path.GetTile())) {
-                                GSLog.Warning("Error building tunnel");
-                            }
-                        } else {
-                            local bridge_list = GSBridgeList_Length(GSMap.DistanceManhattan(path.GetTile(), par.GetTile()) + 1);
-                            bridge_list.Valuate(GSBridge.GetPrice, GSMap.DistanceManhattan(path.GetTile(), par.GetTile()));
-                            bridge_list.Sort(GSList.SORT_BY_VALUE, GSList.SORT_ASCENDING);
-                            if (!GSBridge.BuildBridge(GSVehicle.VT_ROAD, bridge_list.Begin(), path.GetTile(), par.GetTile())) {
-                                GSLog.Warning("Error building bridge");
-                            }
-                        }
-                    }
-                }
-            }
-            path = par;
-        }
+        GSLog.Warning("Can't find a path from " + GSTown.GetName(source) + " to " + GSTown.GetName(destination));
     }
+
     return res;
 }
 
-function RoadBuilder::ChooseRoadType(mode) {
+function MagicRoadBuilder::ChooseRoadType(mode) {
     const game_speed_to_kmph_factor = 2.01168;
 
     local ret = null;
@@ -344,4 +298,4 @@ function RoadBuilder::ChooseRoadType(mode) {
     return ret;
 }
 
-RoadBuilder <- RoadBuilder();
+MagicRoadBuilder <- MagicRoadBuilder();
