@@ -42,6 +42,7 @@ class MagicRoadBuilder {
 
     // Already connected towns
     connected_towns = null;
+    unconnectable_towns = null;
 
     // Job finished
     job_finished = null;
@@ -64,6 +65,7 @@ class MagicRoadBuilder {
         this.speed_town_to_town = GSController.GetSetting("speed_town_to_town");
 
         this.connected_towns = array(0);
+        this.unconnectable_towns = array(0);
 
         this.job_finished = false;
     }
@@ -92,10 +94,26 @@ function MagicRoadBuilder::StoreConnection(source, destination) {
     this.connected_towns.push({source = source, destination = destination});
 }
 
+function MagicRoadBuilder::StoreUnconnectable(source, destination) {
+    this.unconnectable_towns.push({source = source, destination = destination});
+}
+
 function MagicRoadBuilder::TownsAlreadyConnected(source, destination) {
     if (this.connected_towns.len() > 0) {
         foreach(idx,val in this.connected_towns) {
             if (val.source == source && val.destination == destination || val.source == destination && val.destination == source) {
+               return true;
+            }
+        }
+    }
+    return false;
+}
+
+function MagicRoadBuilder::TownsCantConnect(source, destination) {
+    if (this.unconnectable_towns.len() > 0) {
+        foreach(idx,val in this.unconnectable_towns) {
+            // For unconnectable, we test only a->b direction, as the opposite direction might be connectable (existing single way road by exemple)
+            if (val.source == source && val.destination == destination) {
                return true;
             }
         }
@@ -110,6 +128,9 @@ function MagicRoadBuilder::BuildRoads() {
             GSLog.Info(GSTown.GetName(val.source) + " <-> " + GSTown.GetName(val.destination));
         }
     }
+
+    // We clear the unconnectable_towns array as the players may have done some changes that make the connection now possible!
+    this.unconnectable_towns = array(0);
 
     local max_distance_setting = max(max(max_distance_between_cities, max_distance_between_towns_and_cities), max_distance_between_towns_and_towns);
 
@@ -226,12 +247,15 @@ function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
         local remain_destination = max_destinations;
 
         foreach (destination,val in destinations) {
-            GSLog.Info("  -> " + GSTown.GetName(destination));
-            if (this.TownsAlreadyConnected(source, destination)) {
+            if (this.TownsAlreadyConnected(source, destination) || this.TownsCantConnect(source, destination)) {
                 remain_destination--;
             } else if (this.BuildRoad(source, destination, destinations.GetValue(destination), reuse_existing_road)) {
+                GSLog.Info("  -> " + GSTown.GetName(destination) + " : done");
                 this.StoreConnection(source, destination);
                 remain_destination--;
+            } else {
+                GSLog.Info("  -> " + GSTown.GetName(destination) + " : can't be reached");
+                this.StoreUnconnectable(source, destination);
             }
 
             if (remain_destination == 0) {
@@ -249,9 +273,27 @@ function MagicRoadBuilder::BuildRoad(source, destination, distance, repair_exist
 
     res = roadBuilder.DoPathfinding();
     if (res) {
-        roadBuilder.ConnectTiles();
-    } else {
-        GSLog.Warning("Can't find a path from " + GSTown.GetName(source) + " to " + GSTown.GetName(destination));
+        switch (roadBuilder.ConnectTiles())
+        {
+            case CONNECT_SUCCEEDED:
+                break;
+            case CONNECT_FAILED_OTHER:
+                GSLog.Warning("Failed to build road on found path!");
+                res = false;
+                break;
+            case CONNECT_FAILED_TIME_OUT:
+                GSLog.Warning("Build connection was to slow and was aborted!");
+                res = false;
+                break;
+            case CONNECT_FAILED_NO_PATH_FOUND:
+                GSLog.Warning("Build connection didn't find valid path: did someone blocked me?");
+                res = false;
+                break;
+            case CONNECT_FAILED_OUT_OF_TRIES:
+                GSLog.Warning("Build connection tried many time but gave up!");
+                res = false;
+                break;
+        }
     }
 
     return res;
