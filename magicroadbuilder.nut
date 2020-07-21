@@ -22,6 +22,9 @@ import("util.superlib", "SuperLib", 40);
 RoadBuilder <- SuperLib.RoadBuilder;
 
 class MagicRoadBuilder {
+    // Setting for cities to cities and towns to towns
+    max_connected_towns = null;
+
     // Settings cities to cities
     connect_cities_to_cities = null;
     max_distance_between_cities = null;
@@ -36,7 +39,6 @@ class MagicRoadBuilder {
     connect_towns_to_towns = null;
     max_distance_between_towns_and_towns = null;
     speed_town_to_town = null;
-    max_connected_towns = null;
 
     // Already connected towns
     connected_towns = null;
@@ -45,6 +47,8 @@ class MagicRoadBuilder {
     job_finished = null;
 
     constructor() {
+        this.max_connected_towns = GSController.GetSetting("max_connected_towns");
+
         this.connect_cities_to_cities = GSController.GetSetting("connect_cities_to_cities");
         this.max_distance_between_cities = GSController.GetSetting("max_distance_between_cities");
         this.speed_city_to_city = GSController.GetSetting("speed_city_to_city");
@@ -56,7 +60,6 @@ class MagicRoadBuilder {
         this.connect_towns_to_towns = GSController.GetSetting("connect_towns_to_towns");
         this.max_distance_between_towns_and_towns = GSController.GetSetting("max_distance_between_towns_and_towns");
         this.speed_town_to_town = GSController.GetSetting("speed_town_to_town");
-        this.max_connected_towns = GSController.GetSetting("max_connected_towns");
 
         this.connected_towns = array(0);
 
@@ -168,7 +171,7 @@ function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
     switch (mode) {
         case ConnectionMode.MODE_CITIES_TO_CITIES:
             max_distance = max_distance_between_cities;
-            max_destinations = destinations.Count() - 1;
+            max_destinations = max_connected_towns;
             reuse_existing_road = false;
             break;
         case ConnectionMode.MODE_TOWNS_TO_CITIES:
