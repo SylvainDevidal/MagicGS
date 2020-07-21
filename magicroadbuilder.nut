@@ -46,6 +46,8 @@ class MagicRoadBuilder {
     // Job finished
     job_finished = null;
 
+    iteration_distance = 0;
+
     constructor() {
         this.max_connected_towns = GSController.GetSetting("max_connected_towns");
 
@@ -109,9 +111,13 @@ function MagicRoadBuilder::BuildRoads() {
         }
     }
 
-    while (!job_finished) {
-        // After this loop iteration, we will be done, or a new town has be founded (actually, may not happend 
-        job_finished = true;
+    local max_distance_setting = max(max(max_distance_between_cities, max_distance_between_towns_and_cities), max_distance_between_towns_and_towns);
+
+    while (this.iteration_distance < max_distance_setting) {
+        // Each iteration we look for town farther
+        this.iteration_distance += 50;
+
+        GSLog.Info("Iterate towns in a range of " + min(this.iteration_distance, max_distance_setting) + " tiles");
 
         /// Find cities
         local cities = GSTownList();
@@ -133,7 +139,7 @@ function MagicRoadBuilder::BuildRoads() {
             sources.AddList(cities);
             destinations.Clear();
             destinations.AddList(cities);
-            ConnectTowns(sources, destinations, ConnectionMode.MODE_CITIES_TO_CITIES);
+            this.ConnectTowns(sources, destinations, ConnectionMode.MODE_CITIES_TO_CITIES);
         }
 
         // Connect towns to nearest city whatever the distance it is
@@ -142,7 +148,7 @@ function MagicRoadBuilder::BuildRoads() {
             sources.AddList(towns);
             destinations.Clear();
             destinations.AddList(cities);
-            ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_CITIES);
+            this.ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_CITIES);
         }
 
         // Connect towns to nearest towns
@@ -151,9 +157,15 @@ function MagicRoadBuilder::BuildRoads() {
             sources.AddList(towns);
             destinations.Clear();
             destinations.AddList(towns);
-            ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_TOWNS);
+            this.ConnectTowns(sources, destinations, ConnectionMode.MODE_TOWNS_TO_TOWNS);
         }
     }
+
+    // After this loop iteration, we will be done, or a new town has be founded (actually, may not happend 
+    job_finished = true;
+    
+    // We re-enable distance optimisation for next iteration
+    this.iteration_distance = 0;
 }
 
 function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
@@ -165,22 +177,22 @@ function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
     destinations_original = GSList();
     destinations_original.AddList(destinations);
 
-    GSRoad.SetCurrentRoadType(ChooseRoadType(mode));
-    GSLog.Info("Connecting " + GetConnectionModeName(mode));
+    GSRoad.SetCurrentRoadType(this.ChooseRoadType(mode));
+    GSLog.Info("Connecting " + this.GetConnectionModeName(mode));
 
     switch (mode) {
         case ConnectionMode.MODE_CITIES_TO_CITIES:
-            max_distance = max_distance_between_cities;
+            max_distance = min(this.iteration_distance, max_distance_between_cities);
             max_destinations = max_connected_towns;
             reuse_existing_road = false;
             break;
         case ConnectionMode.MODE_TOWNS_TO_CITIES:
-            max_distance = max_distance_between_towns_and_cities;
+            max_distance = min(this.iteration_distance, max_distance_between_towns_and_cities);
             reuse_existing_road = true;
             max_destinations = 1;
             break;
         case ConnectionMode.MODE_TOWNS_TO_TOWNS:
-            max_distance = max_distance_between_towns_and_towns;
+            max_distance = min(this.iteration_distance, max_distance_between_towns_and_towns);
             reuse_existing_road = true;
             max_destinations = max_connected_towns;
             break;
@@ -215,7 +227,7 @@ function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
 
         foreach (destination,val in destinations) {
             GSLog.Info("  -> " + GSTown.GetName(destination));
-            if (TownsAlreadyConnected(source, destination)) {
+            if (this.TownsAlreadyConnected(source, destination)) {
                 remain_destination--;
             } else if (this.BuildRoad(source, destination, destinations.GetValue(destination), reuse_existing_road)) {
                 this.StoreConnection(source, destination);
@@ -231,9 +243,6 @@ function MagicRoadBuilder::ConnectTowns(sources, destinations, mode) {
 
 function MagicRoadBuilder::BuildRoad(source, destination, distance, repair_existing) {
     local res = null;
-
-    //local PathFinder = RoadPathFinder(false);
-    //PathFinder.InitializePath([GSTown.GetLocation(destination)], [GSTown.GetLocation(source)], repair_existing);
 
     local roadBuilder = RoadBuilder();
     roadBuilder.Init(GSTown.GetLocation(destination), GSTown.GetLocation(source), repair_existing, 1000000);
@@ -266,7 +275,7 @@ function MagicRoadBuilder::ChooseRoadType(mode) {
     local tmp_roadTypeList = GSList();
     roadTypeList.AddList(tmp_roadTypeList);
 
-    GSLog.Info("Finding best road type for connecting " + GetConnectionModeName(mode));
+    GSLog.Info("Finding best road type for connecting " + this.GetConnectionModeName(mode));
 
     switch (mode) {
         case ConnectionMode.MODE_CITIES_TO_CITIES:
