@@ -275,21 +275,21 @@ function MagicRoadBuilder::BuildRoad(source, destination, distance, repair_exist
     if (res) {
         switch (roadBuilder.ConnectTiles())
         {
-            case CONNECT_SUCCEEDED:
+            case RoadBuilder.CONNECT_SUCCEEDED:
                 break;
-            case CONNECT_FAILED_OTHER:
+            case RoadBuilder.CONNECT_FAILED_OTHER:
                 GSLog.Warning("Failed to build road on found path!");
                 res = false;
                 break;
-            case CONNECT_FAILED_TIME_OUT:
+            case RoadBuilder.CONNECT_FAILED_TIME_OUT:
                 GSLog.Warning("Build connection was to slow and was aborted!");
                 res = false;
                 break;
-            case CONNECT_FAILED_NO_PATH_FOUND:
+            case RoadBuilder.CONNECT_FAILED_NO_PATH_FOUND:
                 GSLog.Warning("Build connection didn't find valid path: did someone blocked me?");
                 res = false;
                 break;
-            case CONNECT_FAILED_OUT_OF_TRIES:
+            case RoadBuilder.CONNECT_FAILED_OUT_OF_TRIES:
                 GSLog.Warning("Build connection tried many time but gave up!");
                 res = false;
                 break;
