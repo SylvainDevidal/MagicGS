@@ -35,21 +35,22 @@ class FMainClass extends GSInfo {
 	function GetSettings() {
 		AddSetting({name = "max_connected_towns", description = "Maximum number of neighbor towns to be connected", easy_value = 5, medium_value = 5, hard_value = 2, custom_value = 5, flags = CONFIG_NONE, min_value = 1, max_value = 16});
 
-		AddSetting({name = "connect_cities_to_cities", description = "----- Connect cities -----", easy_value = 1, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
-		AddSetting({name = "max_distance_between_cities", description = "Maximum distance between cities", easy_value = 1024, medium_value = 512, hard_value = 256, custom_value = 512, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
-		AddSetting({name = "restrict_speed_city_to_city", description = "Restrict maximum road speed for city to city connection", easy_value = 0, medium_value = 0, hard_value = 1, custom_value = 0, flags = CONFIG_NONE + CONFIG_BOOLEAN});
-		AddSetting({name = "speed_city_to_city", description = "Maximum road speed for city to city connection (km/h)", easy_value = 130, medium_value = 130, hard_value = 90, custom_value = 130, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
+		AddSetting({name = "connect_cities_to_cities", description = "---------- Connect cities ----------", easy_value = 1, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
+		AddSetting({name = "max_distance_between_cities", description = "Maximum distance between cities", easy_value = 512, medium_value = 256, hard_value = 128, custom_value = 512, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
+		AddSetting({name = "restrict_speed_city_to_city", description = "Restrict maximum road speed for city to city connection", easy_value = 0, medium_value = 1, hard_value = 1, custom_value = 0, flags = CONFIG_NONE + CONFIG_BOOLEAN});
+		AddSetting({name = "speed_city_to_city", description = "Maximum road speed for city to city connection (km/h)", easy_value = 130, medium_value = 130, hard_value = 130, custom_value = 130, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
 
-		AddSetting({name = "connect_towns_to_cities", description = "----- Connect towns to cities -----", easy_value = 1, medium_value = 1, hard_value = 0, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
-		AddSetting({name = "max_distance_between_towns_and_cities", description = "Maximum distance between towns and cities", easy_value = 512, medium_value = 256, hard_value = 128, custom_value = 256, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
-		AddSetting({name = "restrict_speed_town_to_city", description = "Restrict maximum road speed for town to city connection", easy_value = 0, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});		
-		AddSetting({name = "speed_town_to_city", description = "Maximum road speed for town to city connection (km/h)", easy_value = 110, medium_value = 90, hard_value = 70, custom_value = 90, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
+		AddSetting({name = "connect_towns_to_cities", description = "---------- Connect towns to cities ----------", easy_value = 1, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
+		AddSetting({name = "max_distance_between_towns_and_cities", description = "Maximum distance between towns and cities", easy_value = 256, medium_value = 128, hard_value = 64, custom_value = 256, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
+		AddSetting({name = "restrict_speed_town_to_city", description = "Restrict maximum road speed for town to city connection", easy_value = 1, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});		
+		AddSetting({name = "speed_town_to_city", description = "Maximum road speed for town to city connection (km/h)", easy_value = 110, medium_value = 90, hard_value = 70, custom_value = 110, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
 
-		AddSetting({name = "connect_towns_to_towns", description = "----- Connect towns to other towns -----", easy_value = 1, medium_value = 1, hard_value = 0, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
-		AddSetting({name = "max_distance_between_towns_and_towns", description = "Maximum distance between towns", easy_value = 256, medium_value = 128, hard_value = 64, custom_value = 128, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
+		AddSetting({name = "connect_towns_to_towns", description = "---------- Connect towns to other towns ----------", easy_value = 1, medium_value = 1, hard_value = 0, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});
+		AddSetting({name = "max_distance_between_towns_and_towns", description = "Maximum distance between towns", easy_value = 128, medium_value = 64, hard_value = 32, custom_value = 128, flags = CONFIG_NONE, min_value = 20, max_value = 16384});
 		AddSetting({name = "restrict_speed_town_to_town", description = "Restrict maximum road speed for town to town connection", easy_value = 1, medium_value = 1, hard_value = 1, custom_value = 1, flags = CONFIG_NONE + CONFIG_BOOLEAN});		
-		AddSetting({name = "speed_town_to_town", description = "Maximum road speed for town to town connection (km/h)", easy_value = 90, medium_value = 70, hard_value = 30, custom_value = 70, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
+		AddSetting({name = "speed_town_to_town", description = "Maximum road speed for town to town connection (km/h)", easy_value = 90, medium_value = 70, hard_value = 50, custom_value = 90, flags = CONFIG_NONE, min_value = 20, max_value = 255, step_size = 5});
 	}
 }
 
 RegisterGS(FMainClass());
+
