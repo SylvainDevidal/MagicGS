@@ -28,16 +28,19 @@ class MagicRoadBuilder {
     // Settings cities to cities
     connect_cities_to_cities = null;
     max_distance_between_cities = null;
+    restrict_speed_city_to_city = null;
     speed_city_to_city = null;
 
     // Settings towns to cities
     connect_towns_to_cities = null;
     max_distance_between_towns_and_cities = null;
+    restrict_speed_town_to_city = null;
     speed_town_to_city = null;
 
     // Settings towns to towns
     connect_towns_to_towns = null;
     max_distance_between_towns_and_towns = null;
+    restrict_speed_town_to_town = null;
     speed_town_to_town = null;
 
     // Already connected towns
@@ -54,14 +57,17 @@ class MagicRoadBuilder {
 
         this.connect_cities_to_cities = GSController.GetSetting("connect_cities_to_cities");
         this.max_distance_between_cities = GSController.GetSetting("max_distance_between_cities");
+        this.restrict_speed_city_to_city = GSController.GetSetting("restrict_speed_city_to_city");
         this.speed_city_to_city = GSController.GetSetting("speed_city_to_city");
 
         this.connect_towns_to_cities = GSController.GetSetting("connect_towns_to_cities");
         this.max_distance_between_towns_and_cities = GSController.GetSetting("max_distance_between_towns_and_cities");
+        this.restrict_speed_town_to_city = GSController.GetSetting("restrict_speed_town_to_city");
         this.speed_town_to_city = GSController.GetSetting("speed_town_to_city");
 
         this.connect_towns_to_towns = GSController.GetSetting("connect_towns_to_towns");
         this.max_distance_between_towns_and_towns = GSController.GetSetting("max_distance_between_towns_and_towns");
+        this.restrict_speed_town_to_town = GSController.GetSetting("restrict_speed_town_to_town");
         this.speed_town_to_town = GSController.GetSetting("speed_town_to_town");
 
         this.connected_towns = array(0);
@@ -319,23 +325,31 @@ function MagicRoadBuilder::ChooseRoadType(mode) {
 
     GSLog.Info("Finding best road type for connecting " + this.GetConnectionModeName(mode));
 
+    local restrict = true;
+
     switch (mode) {
         case ConnectionMode.MODE_CITIES_TO_CITIES:
-            max_speed = speed_city_to_city;
+            if (!restrict_speed_city_to_city) restrict = false;
+            else max_speed = speed_city_to_city;
             break;
         case ConnectionMode.MODE_TOWNS_TO_CITIES:
+            if (!restrict_speed_town_to_city) restrict = false;
             max_speed = speed_town_to_city;
             break;
         case ConnectionMode.MODE_TOWNS_TO_TOWNS:
+            if (!restrict_speed_town_to_town) restrict = false;
             max_speed = speed_town_to_town;
             break;
     }
 
-    // Some NewGRF are based on MPH so there can be some cast error : 110 km/h may will be 112 in the NewGRF then we add 2%
-    max_speed *= 1.02;
+    if (restrict) {
+        // Some NewGRF are based on MPH so there can be some cast error : 110 km/h may will be 112 in the NewGRF then we add 2%
+        max_speed *= 1.02;
 
-    // Conversion km/h to game internal speed
-    max_speed *= game_speed_to_kmph_factor;
+        // Conversion km/h to game internal speed
+        max_speed *= game_speed_to_kmph_factor;
+    }
+    else max_speed = 0;
 
     // We keep only road with lower speed (included)
     roadTypeList.RemoveAboveValue(ceil(max_speed).tointeger());
@@ -348,7 +362,7 @@ function MagicRoadBuilder::ChooseRoadType(mode) {
     // We get the faster road from the list
     ret = roadTypeList.Begin();
 
-    GSLog.Info("Chosen roadType: " + GSRoad.GetName(ret) + " with speed of " + ceil(GSRoad.GetMaxSpeed(ret) / game_speed_to_kmph_factor) + " km/h");
+    GSLog.Info("Chosen roadType: " + GSRoad.GetName(ret) + " with speed limit of " + ceil(GSRoad.GetMaxSpeed(ret) / game_speed_to_kmph_factor) + " km/h");
     return ret;
 }
 

@@ -2,6 +2,7 @@
 
 import os
 import re
+import platform
 
 # ----------------------------------
 # Definitions:
@@ -28,11 +29,22 @@ if(version == -1):
 
 dir_name = gs_pack_name + "-v" + version
 tar_name = dir_name + ".tar"
-os.system("mkdir " + dir_name);
-os.system("xcopy /C /Y *.nut " + dir_name);
-os.system("xcopy /C /Y readme.txt " + dir_name);
-os.system("xcopy /C /Y license.txt " + dir_name);
-os.system("xcopy /C /Y changelog.txt " + dir_name);
-os.system("xcopy /E /C /Y lang " + dir_name);
-os.system("tar -cf " + tar_name + " " + dir_name);
-os.system("rd /S /Q " + dir_name);
+os.makedirs(dir_name, exist_ok = True)
+
+if platform.system() == 'Windows':
+	os.system("xcopy /D *.nut " + dir_name);
+	os.system("xcopy /D readme.txt " + dir_name);
+	os.system("xcopy /D license.txt " + dir_name);
+	os.system("xcopy /D changelog.txt " + dir_name);
+	os.system("xcopy /D /E /S lang " + dir_name);
+	os.system("tar -vcf " + tar_name + " " + dir_name);
+	os.system("rd /S /Q " + dir_name);
+# POSIX
+else:
+	os.system("cp -u *.nut " + dir_name);
+	os.system("cp -u readme.txt " + dir_name);
+	os.system("cp -u license.txt " + dir_name);
+	os.system("cp -u changelog.txt " + dir_name);
+	os.system("cp -ur lang " + dir_name);
+	os.system("tar -vcf " + tar_name + " " + dir_name);
+	os.system("rm -r " + dir_name)
